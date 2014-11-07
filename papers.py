@@ -40,7 +40,7 @@ def decide(input_file, watchlist_file, countries_file):
     decision = {"Quarantine": "", "Reject": "", "Secondary": ""}
     decision_list = []
     for traveller in traveller_information_output:
-        if not completeness(traveller):
+        if incompleteness(traveller):
             decision["Reject"] = True
         if quarantine(traveller, countries_file_output):
             decision["Quarantine"] = True
@@ -59,28 +59,28 @@ def decide(input_file, watchlist_file, countries_file):
     return decision_list
 
 
-def quarantine(traveller, countries_file):
+def quarantine(q_traveller, q_countries_file):
     """check if the traveller needs to be quarantined
     :param traveller: dictionary of traveller info
-    :param countries_file: the current watchlist file from json file
+    :param countries_file: the current watchlist dictionary from json file
     :return: quarantine_state; True if needs to be quarantined, False otherwise
     """
     quarantine_state = False
-    if "via" in traveller:
-        if countries_file[traveller["via"]["country"].upper()]["medical_advisory"]:
+    if "via" in q_traveller:
+        if q_countries_file[q_traveller["via"]["country"].upper()]["medical_advisory"]:
             quarantine_state = True
-    elif countries_file[traveller["from"]["country"].upper()]["medical_advisory"]:
+    elif q_countries_file[q_traveller["from"]["country"].upper()]["medical_advisory"]:
         quarantine_state = True
     return quarantine_state
 
 
-def completeness(traveller_info):
+def incompleteness(traveller_info):
     """check if the traveller info has every required field
     :param traveller_info: list of traveller info
     :return: completeness_state; True if has everything, False otherwise
     """
-    completeness_state = True
-    for info in traveller_info:
+
+    '''for info in traveller_info:
         if not info:
             completeness_state = False
         elif info.index == "home" or info == "from" or info == "via":
@@ -94,7 +94,15 @@ def completeness(traveller_info):
             completeness_state = False
     if not valid_passport_format(traveller_info["passport"]):
         completeness_state = False
-    return completeness_state
+    return completeness_state'''
+    req_field=["passport", "first_name", "last_name", "birth_date", "home",
+               "entry_reason", "from"]
+    for field in req_field:
+        if field not in traveller_info:
+            return True
+    return False
+
+
 
 
 def valid_visa(traveller, countries_file):
