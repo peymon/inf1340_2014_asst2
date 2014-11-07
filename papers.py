@@ -2,10 +2,10 @@
 
 """ Computer-based immigration office for Kanadia """
 
-__author__ = 'Susan Sim'
-__email__ = "ses@drsusansim.org"
+__author__ = 'Peymon & Archon'
+__email__ = "peymonarchon@peychon.com"
 
-__copyright__ = "2014 Susan Sim"
+__copyright__ = "2014 PeyChon"
 __license__ = "MIT License"
 
 __status__ = "Prototype"
@@ -28,31 +28,31 @@ def decide(input_file, watchlist_file, countries_file):
     :return: List of strings. Possible values of strings are: "Accept", "Reject", "Secondary", and "Quarantine"
     """
 
-    with open(input_file, "r") as file_reader:
-        file_contents = file_reader.read()
-        input_file_output = json.loads(file_contents)
+    with open(input_file, "r") as input_file_reader:
+        traveller_information= input_file_reader.read()
+        traveller_information_output = json.loads(traveller_information)
     with open(countries_file, "r") as countries_file_reader:
         countries_file_contents = countries_file_reader.read()
         countries_file_output = json.loads(countries_file_contents)
     with open(watchlist_file, "r") as watchlist_file_reader:
         watchlist_file_contents = watchlist_file_reader.read()
         watchlist_file_output = json.loads(watchlist_file_contents)
-    decision = {"quarantine": "", "reject": "", "secondary": ""}
+    decision = {"Quarantine": "", "Reject": "", "Secondary": ""}
     decision_list = []
-    for traveller in input_file_output:
+    for traveller in traveller_information_output:
         if not completeness(traveller):
-            decision["reject"] = True
-        if quarantine(traveller, countries_file_output) == True:
-            decision["quarantine"] = True
+            decision["Reject"] = True
+        if quarantine(traveller, countries_file_output):
+            decision["Quarantine"] = True
         if not valid_visa(traveller, countries_file_output):
-            decision["reject"] = True
+            decision["Reject"] = True
         if watchlist(traveller, watchlist_file_output):
-            decision["secondary"] = True
-        if decision["quarantine"]:
+            decision["Secondary"] = True
+        if decision["Quarantine"]:
             decision_list.append("Quarantine")
-        elif decision["reject"]:
+        elif decision["Reject"]:
             decision_list.append("Reject")
-        elif decision["secondary"]:
+        elif decision["Secondary"]:
             decision_list.append("Secondary")
         else:
             decision_list.append("Accept")
@@ -61,7 +61,7 @@ def decide(input_file, watchlist_file, countries_file):
 
 def quarantine(traveller, countries_file):
     """check if the traveller needs to be quarantined
-    :param traveller: list of traveller info
+    :param traveller: dictionary of traveller info
     :param countries_file: the current watchlist file from json file
     :return: quarantine_state; True if needs to be quarantined, False otherwise
     """
