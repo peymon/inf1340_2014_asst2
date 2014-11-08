@@ -40,6 +40,7 @@ def decide(input_file, watchlist_file, countries_file):
     decision = {"Quarantine": "", "Reject": "", "Secondary": ""}
     decision_list = []
     for traveller in traveller_information_output:
+        print("new\n")
         if incompleteness(traveller):
             decision["Reject"] = True
         if quarantine(traveller, countries_file_output):
@@ -61,16 +62,18 @@ def decide(input_file, watchlist_file, countries_file):
 
 def quarantine(q_traveller, q_countries_file):
     """check if the traveller needs to be quarantined
-    :param traveller: dictionary of traveller info
-    :param countries_file: the current watchlist dictionary from json file
+    :param q_traveller: dictionary of traveller info
+    :param q_countries_file: the current watchlist dictionary from json file
     :return: quarantine_state; True if needs to be quarantined, False otherwise
     """
     quarantine_state = False
     if "via" in q_traveller:
-        if q_countries_file[q_traveller["via"]["country"].upper()]["medical_advisory"]:
+        if q_traveller["via"]["country"]:
+            if q_countries_file[q_traveller["via"]["country"].upper()]["medical_advisory"]:
+                quarantine_state = True
+    elif q_traveller["from"]["country"]:
+        if q_countries_file[q_traveller["from"]["country"].upper()]["medical_advisory"]:
             quarantine_state = True
-    elif q_countries_file[q_traveller["from"]["country"].upper()]["medical_advisory"]:
-        quarantine_state = True
     return quarantine_state
 
 
@@ -79,10 +82,13 @@ def incompleteness(traveller_info):
     :param traveller_info: list of traveller info
     :return: completeness_state; True if has everything, False otherwise
     """
+    #is it because that we need to check if field is written with something, not just in info?#
     req_field = ["passport", "first_name", "last_name", "birth_date", "home",
                  "entry_reason", "from"]
     for field in req_field:
         if field not in traveller_info:
+            #this line just checking if info has field entry, but what if things inside field is blank?#
+            print(field, "is blank")
             return True
     return False
 
@@ -126,6 +132,7 @@ def watchlist(traveller, watchlist_file):
             "last_name"].lower() == watchlist_person["last_name"].lower():
             watchlist_state = True
     return watchlist_state
+
 
 def valid_passport_format(passport_number):
     """
