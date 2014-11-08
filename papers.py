@@ -127,7 +127,6 @@ def watchlist(traveller, watchlist_file):
             watchlist_state = True
     return watchlist_state
 
-
 def valid_passport_format(passport_number):
     """
     Checks whether a passport number is five sets of five alpha-number characters separated by dashes
