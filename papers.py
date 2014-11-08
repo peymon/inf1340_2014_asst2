@@ -40,7 +40,6 @@ def decide(input_file, watchlist_file, countries_file):
     decision = {"Quarantine": "", "Reject": "", "Secondary": ""}
     decision_list = []
     for traveller in traveller_information_output:
-        print("new\n")
         if incompleteness(traveller):
             decision["Reject"] = True
         if quarantine(traveller, countries_file_output):
@@ -57,7 +56,6 @@ def decide(input_file, watchlist_file, countries_file):
             decision_list.append("Secondary")
         else:
             decision_list.append("Accept")
-        print(decision)
     return decision_list
 
 
