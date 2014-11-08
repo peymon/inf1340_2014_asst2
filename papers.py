@@ -57,6 +57,7 @@ def decide(input_file, watchlist_file, countries_file):
             decision_list.append("Secondary")
         else:
             decision_list.append("Accept")
+        print(decision)
     return decision_list
 
 
@@ -82,14 +83,19 @@ def incompleteness(traveller_info):
     :param traveller_info: list of traveller info
     :return: completeness_state; True if has everything, False otherwise
     """
-    #is it because that we need to check if field is written with something, not just in info?#
     req_field = ["passport", "first_name", "last_name", "birth_date", "home",
                  "entry_reason", "from"]
     for field in req_field:
         if field not in traveller_info:
-            #this line just checking if info has field entry, but what if things inside field is blank?#
-            print(field, "is blank")
             return True
+        if not traveller_info[field]:
+            return True
+        for home_key in traveller_info["home"]:
+            if not traveller_info["home"][home_key]:
+                return True
+        for from_key in traveller_info["from"]:
+            if not traveller_info["from"][from_key]:
+                return True
     return False
 
 
