@@ -29,7 +29,7 @@ def decide(input_file, watchlist_file, countries_file):
     """
 
     with open(input_file, "r") as input_file_reader:
-        traveller_information= input_file_reader.read()
+        traveller_information = input_file_reader.read()
         traveller_information_output = json.loads(traveller_information)
     with open(countries_file, "r") as countries_file_reader:
         countries_file_contents = countries_file_reader.read()
@@ -79,30 +79,12 @@ def incompleteness(traveller_info):
     :param traveller_info: list of traveller info
     :return: completeness_state; True if has everything, False otherwise
     """
-
-    '''for info in traveller_info:
-        if not info:
-            completeness_state = False
-        elif info.index == "home" or info == "from" or info == "via":
-            for entries in info:
-                if not entries:
-                    completeness_state = False
-    if not valid_date_format(traveller_info["birth_date"]):
-        completeness_state = False
-    if "visa" in traveller_info:
-        if not valid_date_format(traveller_info["visa"]["date"]):
-            completeness_state = False
-    if not valid_passport_format(traveller_info["passport"]):
-        completeness_state = False
-    return completeness_state'''
-    req_field=["passport", "first_name", "last_name", "birth_date", "home",
-               "entry_reason", "from"]
+    req_field = ["passport", "first_name", "last_name", "birth_date", "home",
+                 "entry_reason", "from"]
     for field in req_field:
         if field not in traveller_info:
             return True
     return False
-
-
 
 
 def valid_visa(traveller, countries_file):
@@ -113,19 +95,19 @@ def valid_visa(traveller, countries_file):
     """
     today = date.today()
     year = timedelta(days=365)
-    cut_of_date = today - year * 2
+    cut_off_date = today - year * 2
     visa_state = False
     if traveller["entry_reason"].lower() == "returning" and traveller["home"]["country"].upper() == "KAN":
         visa_state = True
     elif traveller["entry_reason"].lower() == "visit":
         if countries_file[traveller["from"]["country"].upper()]["visitor_visa_required"] == "0":
             visa_state = True
-        elif traveller["visa"]["date"] >= cut_of_date:
+        elif traveller["visa"]["date"] >= str(cut_off_date):
             visa_state = True
     elif traveller["entry_reason"].lower() == "transit":
         if countries_file[traveller["from"]["country"].upper()]["transit_visa_required"] == "0":
             visa_state = True
-        elif traveller["visa"]["date"] >= cut_of_date:
+        elif traveller["visa"]["date"] >= str(cut_off_date):
             visa_state = True
     return visa_state
 
@@ -140,7 +122,8 @@ def watchlist(traveller, watchlist_file):
     for watchlist_person in watchlist_file:
         if traveller["passport"].upper() == watchlist_person["passport"].upper():
             watchlist_state = True
-        elif traveller["first_name"].lower() == watchlist_person["first_name"].lower() and traveller["last_name"].lower() == watchlist_person["last_name"].lower():
+        elif traveller["first_name"].lower() == watchlist_person["first_name"].lower() and traveller[
+            "last_name"].lower() == watchlist_person["last_name"].lower():
             watchlist_state = True
     return watchlist_state
 
@@ -170,4 +153,3 @@ def valid_date_format(date_string):
         return True
     except ValueError:
         return False
-
