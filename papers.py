@@ -2,10 +2,10 @@
 
 """ Computer-based immigration office for Kanadia """
 
-__author__ = 'Peymon & Archon'
-__email__ = "peymonarchon@peychon.com"
+__author__ = 'Peymon'
+__email__ = "peymon@peymon.com"
 
-__copyright__ = "2014 PeyChon"
+__copyright__ = "2014 Peymon"
 __license__ = "MIT License"
 
 __status__ = "Prototype"
@@ -43,12 +43,13 @@ def decide(input_file, watchlist_file, countries_file):
     for traveller in traveller_information_output:
         if incompleteness(traveller):
             decision["Reject"] = True
-        if quarantine(traveller, countries_file_output):
+        elif quarantine(traveller, countries_file_output):
             decision["Quarantine"] = True
-        if not valid_visa(traveller, countries_file_output):
+        elif not valid_visa(traveller, countries_file_output):
             decision["Reject"] = True
-        if watchlist(traveller, watchlist_file_output):
+        elif watchlist(traveller, watchlist_file_output):
             decision["Secondary"] = True
+
         if decision["Quarantine"]:
             decision_list.append("Quarantine")
         elif decision["Reject"]:
@@ -59,6 +60,13 @@ def decide(input_file, watchlist_file, countries_file):
             decision_list.append("Accept")
 
     return decision_list
+
+
+def returning_home(traveller):
+    home_state= False
+
+    if traveller["home"]["country"].lower() == "kan":
+        return True
 
 
 
@@ -72,8 +80,9 @@ def quarantine(q_traveller, q_countries_file):
     if "via" in q_traveller:
         if q_countries_file[q_traveller["via"]["country"].upper()]["medical_advisory"]:
             quarantine_state = True
-    elif q_countries_file[q_traveller["from"]["country"].upper()]["medical_advisory"]:
-        quarantine_state = True
+    elif "from" in q_traveller:
+        if q_countries_file[q_traveller["from"]["country"].upper()]["medical_advisory"]:
+            quarantine_state = True
     return quarantine_state
 
 
@@ -88,26 +97,16 @@ def incompleteness(traveller_info):
     for field in req_field:
         if field not in traveller_info:
             incomplete = True
-        else:
-            return False
-    if valid_date_format("birth_date"):
-        incomplete = False
-    else:
-        return True
-    if valid_visa_date_format(traveller_info["visa"]["date"]):
-        incomplete = False
-    else:
-        return True
-    if valid_visa_code_format(traveller_info["visa"]["code"]):
-        incomplete = False
-    else:
-        return True
-    if valid_passport_format("passport"):
-        incomplete = False
-    else:
-        return True
+    print ("incomplete state before checking visa validity state is", incomplete)
 
+    if not valid_date_format("birth_date") or \
+            not valid_visa_date_format(traveller_info["visa"]["date"]) or \
+            not valid_visa_code_format(traveller_info["visa"]["code"]) or \
+            not valid_passport_format("passport"):
+        incomplete = True
+    print ("incomplete state is", incomplete)
     return incomplete
+
 
 def valid_visa(traveller, countries_file):
     """check if the traveller has valid visa if need
@@ -119,8 +118,11 @@ def valid_visa(traveller, countries_file):
     year = timedelta(days=365)
     cut_off_date = today - year * 2
     visa_state = False
-    if traveller["entry_reason"].lower() == "returning" and traveller["home"]["country"].upper() == "KAN":
+    if returning_home(traveller):
         visa_state = True
+    elif traveller["entry_reason"].lower() == "returning" and traveller["home"]["country"].upper() == "KAN":
+        visa_state = True
+        return
     elif traveller["entry_reason"].lower() == "visit":
         if countries_file[traveller["from"]["country"].upper()]["visitor_visa_required"] == "0":
             visa_state = True
@@ -131,6 +133,7 @@ def valid_visa(traveller, countries_file):
             visa_state = True
         elif traveller["visa"]["date"] >= str(cut_off_date):
             visa_state = True
+    print ("valid visa is ", visa_state)
     return visa_state
 
 
@@ -149,6 +152,45 @@ def watchlist(traveller, watchlist_file):
             watchlist_state = True
     return watchlist_state
 
+def valid_date_format(date_string):
+    """
+    Checks whether a date has the format YYYY-mm-dd in numbers
+    :param date_string: date to be checked
+    :return: Boolean True if the format is valid, False otherwise
+    """
+    try:
+        datetime.strptime(date_string, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
+'''def valid_date_format(date_string):
+    """
+    Checks whether a date has the format YYYY-mm-dd in numbers
+    :param date_string: date to be checked
+    :return: Boolean True if the format is valid, False otherwise
+    """
+    date_format = re.compile('.{4}-.{2}-.{2}')
+    if date_format.match(date_string):
+        print("Birthdate is gooz")
+        return True
+    else:
+        print("Birthdate no gooz")
+        return False
+'''
+def valid_visa_date_format(visa_date):
+    try:
+        datetime.strptime(visa_date, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
+def valid_visa_code_format(visa_code):
+    code_format = re.compile('.{5}-.{5}')
+    if code_format.match(visa_code):
+        return True
+    else:
+        return False
 
 def valid_passport_format(passport_number):
     """
@@ -163,28 +205,7 @@ def valid_passport_format(passport_number):
     else:
         return False
 
-def valid_visa_code_format(visa_code):
-    code_format = re.compile('.{5}-.{5}')
-    if code_format.match(visa_code):
-        return True
-    else:
-        return False
 
-def valid_visa_date_format(visa_date):
-    try:
-        datetime.strptime(visa_date, '%Y-%m-%d')
-        return True
-    except ValueError:
-        return False
 
-def valid_date_format(date_string):
-    """
-    Checks whether a date has the format YYYY-mm-dd in numbers
-    :param date_string: date to be checked
-    :return: Boolean True if the format is valid, False otherwise
-    """
-    try:
-        datetime.strptime(date_string, '%Y-%m-%d')
-        return True
-    except ValueError:
-        return False
+
+
