@@ -37,6 +37,7 @@ def decide(input_file, watchlist_file, countries_file):
     with open(watchlist_file, "r") as watchlist_file_reader:
         watchlist_file_contents = watchlist_file_reader.read()
         watchlist_file_output = json.loads(watchlist_file_contents)
+    # function beings testing
     decision = {"Quarantine": "", "Reject": "", "Secondary": ""}
     decision_list = []
     for traveller in traveller_information_output:
@@ -56,7 +57,9 @@ def decide(input_file, watchlist_file, countries_file):
             decision_list.append("Secondary")
         else:
             decision_list.append("Accept")
+
     return decision_list
+
 
 
 def quarantine(q_traveller, q_countries_file):
@@ -79,13 +82,32 @@ def incompleteness(traveller_info):
     :param traveller_info: list of traveller info
     :return: completeness_state; True if has everything, False otherwise
     """
+    incomplete = False
     req_field = ["passport", "first_name", "last_name", "birth_date", "home",
                  "entry_reason", "from"]
     for field in req_field:
         if field not in traveller_info:
-            return True
-    return False
+            incomplete = True
+        else:
+            return False
+    if valid_date_format("birth_date"):
+        incomplete = False
+    else:
+        return True
+    if valid_visa_date_format(traveller_info["visa"]["date"]):
+        incomplete = False
+    else:
+        return True
+    if valid_visa_code_format(traveller_info["visa"]["code"]):
+        incomplete = False
+    else:
+        return True
+    if valid_passport_format("passport"):
+        incomplete = False
+    else:
+        return True
 
+    return incomplete
 
 def valid_visa(traveller, countries_file):
     """check if the traveller has valid visa if need
@@ -120,12 +142,13 @@ def watchlist(traveller, watchlist_file):
     """
     watchlist_state = False
     for watchlist_person in watchlist_file:
-        if traveller["passport"].upper() == watchlist_person["passport"].upper():
-            watchlist_state = True
-        elif traveller["first_name"].lower() == watchlist_person["first_name"].lower() and traveller[
+        if traveller["first_name"].lower() == watchlist_person["first_name"].lower() and traveller[
             "last_name"].lower() == watchlist_person["last_name"].lower():
             watchlist_state = True
+        elif traveller["passport"].upper() == watchlist_person["passport"].upper():
+            watchlist_state = True
     return watchlist_state
+
 
 def valid_passport_format(passport_number):
     """
@@ -140,6 +163,19 @@ def valid_passport_format(passport_number):
     else:
         return False
 
+def valid_visa_code_format(visa_code):
+    code_format = re.compile('.{5}-.{5}')
+    if code_format.match(visa_code):
+        return True
+    else:
+        return False
+
+def valid_visa_date_format(visa_date):
+    try:
+        datetime.strptime(visa_date, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
 
 def valid_date_format(date_string):
     """
