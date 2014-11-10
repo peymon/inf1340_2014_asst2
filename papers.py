@@ -39,10 +39,9 @@ def decide(input_file, watchlist_file, countries_file):
         watchlist_file_output = json.loads(watchlist_file_contents)
 
     # function begins testing
-    decision = {"Quarantine": "", "Reject": "", "Secondary": ""}
     decision_list = []
     for traveller in traveller_information_output:
-        print(traveller)
+        decision = {"Quarantine": "", "Reject": "", "Secondary": ""}
         if incompleteness(traveller):
             decision["Reject"] = True
         elif quarantine(traveller, countries_file_output):
@@ -85,14 +84,13 @@ def quarantine(q_traveller, q_countries_file):
     :param q_countries_file: The current watchlist dictionary from json file
     :return: quarantine_state; True if needs to be quarantined, False otherwise
     """
-    quarantine_state = False
     if "via" in q_traveller:
         if q_countries_file[q_traveller["via"]["country"].upper()]["medical_advisory"]:
-            quarantine_state = True
+            return True
     elif "from" in q_traveller:
         if q_countries_file[q_traveller["from"]["country"].upper()]["medical_advisory"]:
-            quarantine_state = True
-    return quarantine_state
+            return True
+    return False
 
 
 def incompleteness(traveller_info):
@@ -111,6 +109,10 @@ def incompleteness(traveller_info):
             return True
         elif traveller_info[field] == "":
             return True
+    if "via" in traveller_info:
+        for via_key in traveller_info["via"]:
+            if traveller_info["via"][via_key] == "":
+                return True
 
     # checking for format of each key
     if not valid_date_format(traveller_info["birth_date"]):
@@ -137,24 +139,19 @@ def valid_visa(traveller, countries_file):
     year = timedelta(days=365)
     cut_off_date = today - year * 2
 
-    visa_state = False
-
-    if returning_home(traveller):
-        visa_state = True
-    elif traveller["entry_reason"].lower() == "returning" and traveller["home"]["country"].upper() == "KAN":
-        visa_state = True
-        return
-    elif traveller["entry_reason"].lower() == "visit":
+    if returning_home(traveller) and traveller["entry_reason"].lower() == "returning":
+        return True
+    if traveller["entry_reason"].lower() == "visit":
         if countries_file[traveller["from"]["country"].upper()]["visitor_visa_required"] == "0":
-            visa_state = True
+            return True
         elif traveller["visa"]["date"] >= str(cut_off_date):
-            visa_state = True
-    elif traveller["entry_reason"].lower() == "transit":
+            return True
+    if traveller["entry_reason"].lower() == "transit":
         if countries_file[traveller["from"]["country"].upper()]["transit_visa_required"] == "0":
-            visa_state = True
+            return True
         elif traveller["visa"]["date"] >= str(cut_off_date):
-            visa_state = True
-    return visa_state
+            return True
+    return False
 
 
 def watchlist(traveller, watchlist_file):
@@ -165,14 +162,15 @@ def watchlist(traveller, watchlist_file):
     :param watchlist_file: the current watchlist file from json file
     :return: watchlist_state; True if on watchlist, False otherwise
     """
-    watchlist_state = False
     for watchlist_person in watchlist_file:
         if traveller["first_name"].lower() == watchlist_person["first_name"].lower() and traveller[
             "last_name"].lower() == watchlist_person["last_name"].lower():
-            watchlist_state = True
-        elif traveller["passport"].upper() == watchlist_person["passport"].upper():
-            watchlist_state = True
-    return watchlist_state
+            if watchlist_person["passport"] == "":
+                #prevent misjudging someone who has the same name as a watchlist person, but different passport no.#
+                return True
+        if traveller["passport"].upper() == watchlist_person["passport"].upper():
+            return True
+    return False
 
 
 def valid_date_format(date_string):

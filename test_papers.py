@@ -18,10 +18,10 @@ from papers import decide
 
 def test_basic():
     assert decide("test_returning_citizen.json", "watchlist.json", "countries.json") == ["Accept", "Accept"]
-    assert decide("test_watchlist.json", "watchlist.json", "countries.json") == ["Secondary", "Secondary", "Secondary"]
-    assert decide("test_quarantine.json", "watchlist.json", "countries.json") == ["Quarantine"]
+    assert decide("test_watchlist.json", "watchlist.json", "countries.json") == ["Secondary", "Secondary", "Secondary", "Secondary", "Accept"]
+    assert decide("test_quarantine.json", "watchlist.json", "countries.json") == ["Quarantine", "Quarantine"]
     assert decide("test_invalid_visa.json", "watchlist.json", "countries.json") == ["Reject", "Reject"]
-    assert decide("incomplete_entries.json", "watchlist.json", "countries.json") == ["Reject"]
+    assert decide("incomplete_entries.json", "watchlist.json", "countries.json") == ["Reject", "Reject", "Reject"]
 
 
 def test_files():
@@ -33,6 +33,11 @@ def test_files():
     with pytest.raises(FileNotFoundError):
         decide("test_returning_citizen.json", "watchlist.json", "")
 
-
+"""
 test_basic()
 test_files()
+"""
+def test_test():
+    assert decide("test_watchlist.json", "watchlist.json", "countries.json") == ["Secondary", "Secondary", "Secondary", "Secondary", "Accept"]
+
+test_test()
