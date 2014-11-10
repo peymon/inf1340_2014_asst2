@@ -20,15 +20,15 @@ def test_accept():
 
 
 def test_secondary():
-    assert decide("test_watchlist.json", "watchlist.json", "countries.json") == ["Secondary"]
+    assert decide("test_watchlist_S_S_S.json", "watchlist.json", "countries.json") == ["Secondary", "Secondary", "Secondary"]
 
 
 def test_quarantine():
     assert decide("test_quarantine.json", "watchlist.json", "countries.json") == ["Quarantine"]
 
 
-def test_incomplete():
-    assert decide("test_4cases_should_give_Accept_Accept_incomplete_incomplete.json", "watchlist.json", "countries.json") == ["Accept", "Accept", "Reject", "Reject"]
+def test_case_and_incomplete():
+    assert decide("test_case_and_incomplete_A_A_R_R.json", "watchlist.json", "countries.json") == ["Accept", "Accept", "Reject", "Reject"]
 
 
 def test_files():
@@ -36,4 +36,4 @@ def test_files():
         decide("test_returning_citizen.json", "", "countries.json")
 
 # add functions for other tests
-test_incomplete()
+test_case_and_incomplete()

@@ -40,14 +40,15 @@ def decide(input_file, watchlist_file, countries_file):
     decision = {"Quarantine": "", "Reject": "", "Secondary": ""}
     decision_list = []
     for traveller in traveller_information_output:
-        if incompleteness(traveller):
-            decision["Reject"] = True
         if quarantine(traveller, countries_file_output):
             decision["Quarantine"] = True
-        if not valid_visa(traveller, countries_file_output):
+        if incompleteness(traveller):
             decision["Reject"] = True
-        if watchlist(traveller, watchlist_file_output):
-            decision["Secondary"] = True
+        else:
+            if not valid_visa(traveller, countries_file_output):
+                decision["Reject"] = True
+            if watchlist(traveller, watchlist_file_output):
+                decision["Secondary"] = True
         if decision["Quarantine"]:
             decision_list.append("Quarantine")
         elif decision["Reject"]:
