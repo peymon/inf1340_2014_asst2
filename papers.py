@@ -97,6 +97,7 @@ def quarantine(q_traveller, q_countries_file):
 def incompleteness(traveller_info):
     """
     Check if the traveller info has every required field
+
     :param traveller_info: list of traveller info
     :return: completeness_state; True if has everything, False otherwise
     """
@@ -148,6 +149,7 @@ def valid_visa(traveller, countries_file):
 def watchlist(traveller, watchlist_file):
     """
     Check if the traveller is on watchlist
+
     :param traveller: list of traveller info
     :param watchlist_file: the current watchlist file from json file
     :return: watchlist_state; True if on watchlist, False otherwise
@@ -193,6 +195,7 @@ def valid_visa_date_format(visa_date):
 def valid_visa_code_format(visa_code):
     """
     Check whether a visa number is two sets of five alpha-number characters separated by a dash
+
     :param visa_code: string, visa number to be checked
     :return:
     """
@@ -206,6 +209,7 @@ def valid_visa_code_format(visa_code):
 def valid_passport_format(passport_number):
     """
     Check whether a passport number is five sets of five alpha-number characters separated by dashes
+
     :param passport_number: alpha-numeric string
     :return: Boolean; True if the format is valid, False otherwise
     """
