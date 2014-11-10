@@ -2,10 +2,10 @@
 
 """ Computer-based immigration office for Kanadia """
 
-__author__ = 'Peymon & Archon'
-__email__ = "peymonarchon@peychon.com"
+__author__ = 'Peymon'
+__email__ = "peymon@peymon.com"
 
-__copyright__ = "2014 PeyChon"
+__copyright__ = "2014 Peymon"
 __license__ = "MIT License"
 
 __status__ = "Prototype"
@@ -27,7 +27,7 @@ def decide(input_file, watchlist_file, countries_file):
         an entry or transit visa is required, and whether there is currently a medical advisory
     :return: List of strings. Possible values of strings are: "Accept", "Reject", "Secondary", and "Quarantine"
     """
-
+    # open and read json files
     with open(input_file, "r") as input_file_reader:
         traveller_information = input_file_reader.read()
         traveller_information_output = json.loads(traveller_information)
@@ -37,18 +37,20 @@ def decide(input_file, watchlist_file, countries_file):
     with open(watchlist_file, "r") as watchlist_file_reader:
         watchlist_file_contents = watchlist_file_reader.read()
         watchlist_file_output = json.loads(watchlist_file_contents)
+
+    # function begins testing
     decision = {"Quarantine": "", "Reject": "", "Secondary": ""}
     decision_list = []
     for traveller in traveller_information_output:
-        if quarantine(traveller, countries_file_output):
-            decision["Quarantine"] = True
         if incompleteness(traveller):
             decision["Reject"] = True
-        else:
-            if not valid_visa(traveller, countries_file_output):
-                decision["Reject"] = True
-            if watchlist(traveller, watchlist_file_output):
-                decision["Secondary"] = True
+        elif quarantine(traveller, countries_file_output):
+            decision["Quarantine"] = True
+        elif not valid_visa(traveller, countries_file_output):
+            decision["Reject"] = True
+        elif watchlist(traveller, watchlist_file_output):
+            decision["Secondary"] = True
+        # add the decisions to decision_list
         if decision["Quarantine"]:
             decision_list.append("Quarantine")
         elif decision["Reject"]:
@@ -57,49 +59,70 @@ def decide(input_file, watchlist_file, countries_file):
             decision_list.append("Secondary")
         else:
             decision_list.append("Accept")
+    # show what is on the decision_list
     return decision_list
 
 
+def returning_home(traveller):
+    """
+    Check whether or not the traveller's home country is KAN
+
+    :param traveller: Dictionary of traveller information
+    :return: Whether or not traveller is from KAN, TRUE for yes, False for no
+    """
+    home_state = False
+
+    if traveller["home"]["country"].lower() == "kan":
+        return True
+
+
 def quarantine(q_traveller, q_countries_file):
-    """check if the traveller needs to be quarantined
-    :param q_traveller: dictionary of traveller info
-    :param q_countries_file: the current watchlist dictionary from json file
+    """
+    Check if the traveller needs to be quarantined
+
+    :param q_traveller: Dictionary of traveller info
+    :param q_countries_file: The current watchlist dictionary from json file
     :return: quarantine_state; True if needs to be quarantined, False otherwise
     """
     quarantine_state = False
     if "via" in q_traveller:
-        if q_traveller["via"]["country"]:
-            if q_countries_file[q_traveller["via"]["country"].upper()]["medical_advisory"]:
-                quarantine_state = True
-    elif q_traveller["from"]["country"]:
+        if q_countries_file[q_traveller["via"]["country"].upper()]["medical_advisory"]:
+            quarantine_state = True
+    elif "from" in q_traveller:
         if q_countries_file[q_traveller["from"]["country"].upper()]["medical_advisory"]:
             quarantine_state = True
     return quarantine_state
 
 
 def incompleteness(traveller_info):
-    """check if the traveller info has every required field
+    """
+    Check if the traveller info has every required field
+
     :param traveller_info: list of traveller info
     :return: completeness_state; True if has everything, False otherwise
     """
+    incomplete = False
+    # adding required fields to a list
     req_field = ["passport", "first_name", "last_name", "birth_date", "home",
                  "entry_reason", "from"]
+    # checking for each field and if any is missing return as incomplete
     for field in req_field:
         if field not in traveller_info:
-            return True
-        if not traveller_info[field]:
-            return True
-        for home_key in traveller_info["home"]:
-            if not traveller_info["home"][home_key]:
-                return True
-        for from_key in traveller_info["from"]:
-            if not traveller_info["from"][from_key]:
-                return True
-    return False
+            incomplete = True
+
+    # checking for format of each key
+    if not valid_date_format("birth_date") or \
+            not valid_visa_date_format(traveller_info["visa"]["date"]) or \
+            not valid_visa_code_format(traveller_info["visa"]["code"]) or \
+            not valid_passport_format("passport"):
+        incomplete = True
+    return incomplete
 
 
 def valid_visa(traveller, countries_file):
-    """check if the traveller has valid visa if need
+    """
+    Check if the traveller has valid visa if need
+
     :param traveller: list of traveller info
     :param countries_file: the current countries file from json file
     :return: visa_state; True if visa is within 2 years, False otherwise
@@ -107,9 +130,14 @@ def valid_visa(traveller, countries_file):
     today = date.today()
     year = timedelta(days=365)
     cut_off_date = today - year * 2
+
     visa_state = False
-    if traveller["entry_reason"].lower() == "returning" and traveller["home"]["country"].upper() == "KAN":
+
+    if returning_home(traveller):
         visa_state = True
+    elif traveller["entry_reason"].lower() == "returning" and traveller["home"]["country"].upper() == "KAN":
+        visa_state = True
+        return
     elif traveller["entry_reason"].lower() == "visit":
         if countries_file[traveller["from"]["country"].upper()]["visitor_visa_required"] == "0":
             visa_state = True
@@ -124,24 +152,69 @@ def valid_visa(traveller, countries_file):
 
 
 def watchlist(traveller, watchlist_file):
-    """check if the traveller is in watchlist
+    """
+    Check if the traveller is on watchlist
+
     :param traveller: list of traveller info
     :param watchlist_file: the current watchlist file from json file
-    :return: watchlist_state; True if in watchlist, False otherwise
+    :return: watchlist_state; True if on watchlist, False otherwise
     """
     watchlist_state = False
     for watchlist_person in watchlist_file:
-        if traveller["passport"].upper() == watchlist_person["passport"].upper():
-            watchlist_state = True
-        elif traveller["first_name"].lower() == watchlist_person["first_name"].lower() and traveller[
+        if traveller["first_name"].lower() == watchlist_person["first_name"].lower() and traveller[
             "last_name"].lower() == watchlist_person["last_name"].lower():
+            watchlist_state = True
+        elif traveller["passport"].upper() == watchlist_person["passport"].upper():
             watchlist_state = True
     return watchlist_state
 
 
+def valid_date_format(date_string):
+    """
+    Check whether a date has the format YYYY-mm-dd in numbers
+
+    :param date_string: date to be checked
+    :return: Boolean True if the format is valid, False otherwise
+    """
+    try:
+        datetime.strptime(date_string, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
+
+def valid_visa_date_format(visa_date):
+    """
+    Check to see if visa is in the right format
+
+    :param visa_date: string, date to be checked
+    :return: Boolean True if the format is valid, False otherwise
+    """
+    try:
+        datetime.strptime(visa_date, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
+
+def valid_visa_code_format(visa_code):
+    """
+    Check whether a visa number is two sets of five alpha-number characters separated by a dash
+
+    :param visa_code: string, visa number to be checked
+    :return:
+    """
+    code_format = re.compile('.{5}-.{5}')
+    if code_format.match(visa_code):
+        return True
+    else:
+        return False
+
+
 def valid_passport_format(passport_number):
     """
-    Checks whether a passport number is five sets of five alpha-number characters separated by dashes
+    Check whether a passport number is five sets of five alpha-number characters separated by dashes
+
     :param passport_number: alpha-numeric string
     :return: Boolean; True if the format is valid, False otherwise
     """
@@ -153,14 +226,6 @@ def valid_passport_format(passport_number):
         return False
 
 
-def valid_date_format(date_string):
-    """
-    Checks whether a date has the format YYYY-mm-dd in numbers
-    :param date_string: date to be checked
-    :return: Boolean True if the format is valid, False otherwise
-    """
-    try:
-        datetime.strptime(date_string, '%Y-%m-%d')
-        return True
-    except ValueError:
-        return False
+
+
+
