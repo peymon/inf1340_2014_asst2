@@ -2,10 +2,10 @@
 
 """ Module to test papers.py  """
 
-__author__ = 'Peymon'
-__email__ = "peymon@peymon.com"
+__author__ = 'Peymon & Archon'
+__email__ = "peymonarchon@peychon.com"
 
-__copyright__ = "2014 Peymon"
+__copyright__ = "2014 PeymonArchon"
 __license__ = "MIT License"
 
 __status__ = "Prototype"
