@@ -33,11 +33,6 @@ def test_files():
     with pytest.raises(FileNotFoundError):
         decide("test_returning_citizen.json", "watchlist.json", "")
 
-"""
+
 test_basic()
 test_files()
-"""
-def test_test():
-    assert decide("test_watchlist.json", "watchlist.json", "countries.json") == ["Secondary", "Secondary", "Secondary", "Secondary", "Accept"]
-
-test_test()
