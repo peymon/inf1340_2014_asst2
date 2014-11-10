@@ -42,6 +42,7 @@ def decide(input_file, watchlist_file, countries_file):
     decision = {"Quarantine": "", "Reject": "", "Secondary": ""}
     decision_list = []
     for traveller in traveller_information_output:
+        print(traveller)
         if incompleteness(traveller):
             decision["Reject"] = True
         elif quarantine(traveller, countries_file_output):
@@ -70,10 +71,10 @@ def returning_home(traveller):
     :param traveller: Dictionary of traveller information
     :return: Whether or not traveller is from KAN, TRUE for yes, False for no
     """
-    home_state = False
 
     if traveller["home"]["country"].lower() == "kan":
         return True
+    return False
 
 
 def quarantine(q_traveller, q_countries_file):
@@ -109,12 +110,18 @@ def incompleteness(traveller_info):
     for field in req_field:
         if field not in traveller_info:
             incomplete = True
+        elif traveller_info[field] == "":
+            incomplete = True
 
     # checking for format of each key
-    if not valid_date_format("birth_date") or \
-            not valid_visa_date_format(traveller_info["visa"]["date"]) or \
-            not valid_visa_code_format(traveller_info["visa"]["code"]) or \
-            not valid_passport_format("passport"):
+    if not valid_date_format(traveller_info["birth_date"]):
+        incomplete = True
+    if "visa" in traveller_info:
+        if not valid_visa_date_format(traveller_info["visa"]["date"]):
+            incomplete = True
+        if not valid_visa_code_format(traveller_info["visa"]["code"]):
+            incomplete = True
+    if not valid_passport_format(traveller_info["passport"]):
         incomplete = True
     return incomplete
 
