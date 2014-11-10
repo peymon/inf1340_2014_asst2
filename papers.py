@@ -102,12 +102,15 @@ def incompleteness(traveller_info):
     :return: completeness_state; True if has everything, False otherwise
     """
     incomplete = False
+    # adding required fields to a list
     req_field = ["passport", "first_name", "last_name", "birth_date", "home",
                  "entry_reason", "from"]
+    # checking for each field and if any is missing return as incomplete
     for field in req_field:
         if field not in traveller_info:
             incomplete = True
 
+    # checking for format of each key
     if not valid_date_format("birth_date") or \
             not valid_visa_date_format(traveller_info["visa"]["date"]) or \
             not valid_visa_code_format(traveller_info["visa"]["code"]) or \
@@ -127,7 +130,9 @@ def valid_visa(traveller, countries_file):
     today = date.today()
     year = timedelta(days=365)
     cut_off_date = today - year * 2
+
     visa_state = False
+
     if returning_home(traveller):
         visa_state = True
     elif traveller["entry_reason"].lower() == "returning" and traveller["home"]["country"].upper() == "KAN":
