@@ -208,7 +208,7 @@ def valid_visa_code_format(visa_code):
     :param visa_code: string, visa number to be checked
     :return:
     """
-    code_format = re.compile('.{5}-.{5}')
+    code_format = re.compile('^\w{5}-\w{5}$')
     if code_format.match(visa_code):
         return True
     else:
@@ -222,7 +222,7 @@ def valid_passport_format(passport_number):
     :param passport_number: alpha-numeric string
     :return: Boolean; True if the format is valid, False otherwise
     """
-    passport_format = re.compile('.{5}-.{5}-.{5}-.{5}-.{5}')
+    passport_format = re.compile('^\w{5}-\w{5}-\w{5}-\w{5}-\w{5}$')
 
     if passport_format.match(passport_number):
         return True
